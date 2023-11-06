@@ -19,7 +19,7 @@ let tokenUris = [
     "ipfs://QmZYmH5iDbD6v3U2ixoVAjioSzvWJszDzYdbeCLquGSpVm",
 ]
 
-const FUND_AMOUNT = "10000000000000000"
+const FUND_AMOUNT = "10000000000000000" // 10 Link
 
 module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deploy, log } = deployments
