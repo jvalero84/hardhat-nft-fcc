@@ -64,6 +64,7 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         i_callbackGasLimit = callbackGasLimit;
         _initializeContract(dogTokenUris);
         i_mintFee = mintFee;
+        s_tokenCounter = 0;
     }
 
     // To kick a VRF Chainlink request
@@ -86,6 +87,7 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomwords) internal override {
         address dogOwner = s_requestIdToSender[requestId];
         uint256 newTokenId = s_tokenCounter;
+        s_tokenCounter += 1;
         // What does this token look like?? Time to use the randomness..
         uint256 moddedRng = randomwords[0] % MAX_CHANCE_VALUE;
         // 0 - 99
@@ -94,7 +96,7 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         // 45 -> St Bernard
         // 88 -> St Bernard
         Breed dogBreed = getBreedFromModdedRng(moddedRng);
-        s_tokenCounter += s_tokenCounter;
+
         _safeMint(dogOwner, newTokenId);
         _setTokenURI(newTokenId, s_dogTokenUris[uint256(dogBreed)]);
         emit NftMinted(dogBreed, dogOwner);
@@ -112,10 +114,10 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         uint256 cumulativeSum = 0;
         uint256[3] memory chanceArray = getChanceArray();
         for (uint256 i = 0; i < chanceArray.length; i++) {
-            if (moddedRng >= cumulativeSum && moddedRng < cumulativeSum + chanceArray[i]) {
+            if (moddedRng >= cumulativeSum && moddedRng < chanceArray[i]) {
                 return Breed(i);
             }
-            cumulativeSum += chanceArray[i];
+            cumulativeSum = chanceArray[i];
         }
         revert RandomIpfsNft__RangeOutOfBounds();
     }
@@ -149,5 +151,9 @@ contract RandomIpfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
 
     function getInitialized() public view returns (bool) {
         return s_initialized;
+    }
+
+    function getSubscriptionId() public view returns (uint256) {
+        return i_subscriptionId;
     }
 }
