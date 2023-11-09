@@ -87,5 +87,5 @@ module.exports = {
     mocha: {
         timeout: 500000, // 500 seconds max
     },
-    solidity: { compilers: [{ version: "0.8.7" }, { version: "0.8.20" }] },
+    solidity: { compilers: [{ version: "0.8.7" }, { version: "0.8.20" }, { version: "0.6.6" }] },
 }
