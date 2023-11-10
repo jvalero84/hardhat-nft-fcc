@@ -10,8 +10,8 @@ contract DynamicSvgNft is ERC721 {
     // For this type of NFT we are going to need some logic that decides whether the tokenUri returns a smiley face or a frowny face
 
     uint256 s_tokenCounter;
-    string private i_lowImageURI;
-    string private i_highImageURI;
+    string private s_lowImageURI;
+    string private s_highImageURI;
     string private constant base64EncodedSvgPrefix = "data:image/svg+xml;base64,";
     AggregatorV3Interface internal immutable i_priceFeed;
     mapping(uint256 => int256) public s_tokenIdToHighValue; // We'd like the minter of the token to be able to choose the threshold value that determines if the token is high or low
@@ -24,10 +24,10 @@ contract DynamicSvgNft is ERC721 {
         address priceFeedAddress,
         string memory lowSvg,
         string memory highSvg
-    ) ERC721("Dynamic SVG NGT", "DSN") {
+    ) ERC721("Dynamic SVG NFT", "DSN") {
         s_tokenCounter = 0;
-        i_lowImageURI = svgToImageURI(lowSvg);
-        i_highImageURI = svgToImageURI(highSvg);
+        s_lowImageURI = svgToImageURI(lowSvg);
+        s_highImageURI = svgToImageURI(highSvg);
         i_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
@@ -39,8 +39,8 @@ contract DynamicSvgNft is ERC721 {
     }
 
     function mintNft(int256 highValue) public {
-        s_tokenIdToHighValue[s_tokenCounter] = highValue;
         s_tokenCounter++;
+        s_tokenIdToHighValue[s_tokenCounter] = highValue;
         _safeMint(msg.sender, s_tokenCounter);
         emit CreatedNFT(s_tokenCounter, highValue);
     }
@@ -52,10 +52,10 @@ contract DynamicSvgNft is ERC721 {
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(_ownerOf(tokenId) != address(0), "URI Query for non-existent token"); // In OpenZeppelin 5.x _exists function was removed and can be replaced with this expression.
         // string memory imageURI = "hi!";
-        string memory imageURI = i_lowImageURI;
+        string memory imageURI = s_lowImageURI;
         (, int256 price, , , ) = i_priceFeed.latestRoundData();
         if (price >= s_tokenIdToHighValue[tokenId]) {
-            imageURI = i_highImageURI;
+            imageURI = s_highImageURI;
         }
         return
             string(
@@ -65,8 +65,8 @@ contract DynamicSvgNft is ERC721 {
                         bytes(
                             abi.encodePacked(
                                 '{"name":"',
-                                name(),
-                                '" , "description":"An NFT that changes based on the ChainLink Feed", ',
+                                name(), // You can add whatever name here
+                                '", "description":"An NFT that changes based on the Chainlink Feed", ',
                                 '"attributes": [{"trait_type": "coolness", "value": 100}], "image":"',
                                 imageURI,
                                 '"}'
@@ -75,5 +75,21 @@ contract DynamicSvgNft is ERC721 {
                     )
                 )
             );
+    }
+
+    function getLowSVG() public view returns (string memory) {
+        return s_lowImageURI;
+    }
+
+    function getHighSVG() public view returns (string memory) {
+        return s_highImageURI;
+    }
+
+    function getTokenCounter() public view returns (uint256) {
+        return s_tokenCounter;
+    }
+
+    function getPriceFeed() public view returns (AggregatorV3Interface) {
+        return i_priceFeed;
     }
 }
